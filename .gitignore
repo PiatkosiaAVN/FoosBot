@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+.env
+teams-manifest/manifest.json
+teams-manifest/foosbot-teams.zip

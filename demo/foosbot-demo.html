@@ -1,0 +1,36 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FoosBot · MVP</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#124b37,transparent 42%),#0c1320;color:#ecf5f7;font:16px system-ui,Segoe UI,sans-serif}main{max-width:850px;margin:0 auto;padding:30px 18px 70px}header{margin-bottom:24px}h1{font-size:44px;margin:0;letter-spacing:-2px}h2{font-size:18px;margin:0 0 16px}.muted{color:#a4bbcb}section{background:#1a2a3b;border:1px solid #36516b;padding:20px;border-radius:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.wide{grid-column:1/-1}.badge{border:1px solid #3f8067;border-radius:18px;color:#60edaa;padding:8px 12px;display:inline-block}.badge.busy{border-color:#b86b67;color:#ffaaa5}.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.player{padding:10px 5px;min-height:90px;text-align:center;border:1px solid #516678;border-radius:12px;font-size:13px;overflow:hidden}.player.empty{border-style:dashed;color:#7891a5}.face{display:block;margin:0 auto 9px;background:#207652;border-radius:50%;width:33px;height:33px;padding-top:7px;font-weight:800}.empty .face{background:#405269}.big{font-size:27px;font-weight:800;margin:0 0 14px}select{width:100%;font:inherit;padding:12px;background:#30445b;color:white;border:1px solid #7891a0;border-radius:9px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}button{cursor:pointer;border:0;padding:14px 10px;border-radius:10px;font-size:15px;font-weight:750;background:#3ab77c;color:#0b2419}button.alt{background:#455d74;color:white}button.warn{background:#b65d5a;color:white}button:disabled{opacity:.32;cursor:not-allowed}button:focus-visible,select:focus-visible{outline:3px solid #f8d47c;outline-offset:2px}.span2{grid-column:1/-1}.notification{min-height:48px;background:#13283b;padding:14px;border-left:3px solid #e9c36a;margin-top:14px;border-radius:7px}.help{color:#abc1d0;line-height:1.7;padding-left:20px}footer{color:#9cb2c4;font-size:13px;margin-top:20px}@media(max-width:600px){.grid{grid-template-columns:1fr}.wide{grid-column:1}section{padding:15px}.player{min-height:76px}}
+</style></head><body><main>
+<header><h1>⚽ Piłkarzyki</h1><p class="muted">Prototyp aplikacji do piłkarzyków · niezależna demonstracja w przeglądarce</p></header>
+<div class="grid">
+<section class="wide"><h2>Stan stołu</h2><span id="status" class="badge">🟢 STÓŁ WOLNY</span><p class="muted" id="info">Zbieramy pierwsze cztery osoby.</p></section>
+<section><h2>🎮 Grają teraz</h2><p class="big" id="activeCount">0 / 4</p><div id="active" class="players"></div></section>
+<section><h2>⏳ Następny skład</h2><p class="big" id="queueCount">0 / 4</p><div id="waiting" class="players"></div><p class="muted" id="extra"></p></section>
+<section class="wide"><h2>Sterowanie</h2><label for="who">Wybierz symulowanego użytkownika Teams:</label><select id="who"></select>
+<div class="actions"><button id="join">+1 · Dołącz</button><button id="leave" class="alt">−1 · Wypisz się</button><button id="go" class="span2">▶ GO! · Rozpocznij grę</button><button id="finish" class="warn span2">✓ Zakończ mecz · zwolnij stół</button><button id="scenario" class="alt span2">⚙ Wczytaj scenariusz: 2 pełne składy</button><button id="reset" class="alt span2">↻ Wyczyść demonstrację</button></div>
+<div id="feedback" class="notification" role="status" aria-live="polite">Wybierz osobę i kliknij +1. GO nie uruchamia się automatycznie.</div></section>
+<section class="wide"><h2>Co sprawdzić?</h2><ol class="help"><li>Kliknij „Wczytaj scenariusz”. Pierwsza czwórka gra, a druga czwórka czeka.</li><li>GO drugiej czwórki jest zablokowane.</li><li>Zmień użytkownika na Olę i zakończ grę.</li><li>Przełącz na Elę: teraz można kliknąć GO, ale nadal nie dzieje się to automatycznie.</li><li>Sprawdź też −1 przy pełnym składzie.</li></ol></section>
+</div><footer>Ten plik jest tylko symulacją interfejsu. W archiwum ZIP znajduje się kod bota Teams w C# z serwerową blokadą równoczesnego GO oraz testami.</footer></main>
+<script>
+(() => {
+  const users=['Ola','Bartek','Celina','Daniel','Ela','Filip','Gosia','Hubert','Iga','Jan'];
+  const $=id=>document.getElementById(id);
+  let playing=[],waiting=[];
+  for(const name of users){const opt=document.createElement('option');opt.value=name;opt.textContent=name;$('who').appendChild(opt)}
+  const me=()=>$('who').value;
+  const msg=s=>$('feedback').textContent=s;
+  function cards(id,items){const root=$(id);root.replaceChildren();for(let i=0;i<4;i++){const name=items[i];const node=document.createElement('div');node.className='player'+(name?'':' empty');const symbol=document.createElement('span');symbol.className='face';symbol.textContent=name?name[0]:'+';const label=document.createElement('span');label.textContent=name||'Wolne';node.append(symbol,label);root.append(node)}}
+  function render(){const occupied=playing.length>0;const current=waiting.slice(0,4);cards('active',playing);cards('waiting',current);$('activeCount').textContent=playing.length+'/4';$('queueCount').textContent=current.length+'/4';$('extra').textContent=waiting.length>4?'Rezerwowi: '+waiting.slice(4).join(', '):'Brak dalszych rezerwowych';$('status').classList.toggle('busy',occupied);$('status').textContent=occupied?'🔴 STÓŁ ZAJĘTY':'🟢 STÓŁ WOLNY';$('info').textContent=occupied?`Drugi skład: ${current.length}/4. GO zablokowane, aż poprzedni mecz się zakończy.`:current.length===4?'Komplet! Czekamy na ręczne GO.':`Brakuje ${4-current.length} osób. GO nie jest automatyczne.`;$('join').disabled=waiting.includes(me());$('leave').disabled=!waiting.includes(me());$('go').disabled=occupied||current.length<4||!current.includes(me());$('finish').disabled=!occupied||!playing.includes(me())}
+  function action(a){const person=me();if(a==='join'){if(waiting.includes(person)){msg('Już jesteś w kolejce.');return}waiting.push(person);msg(person+' zapisuje się (+1).')}
+    if(a==='leave'){if(!waiting.includes(person)){msg(playing.includes(person)?'−1 nie usuwa osoby z rozpoczętego meczu.':'Nie jesteś w kolejce.');return}waiting=waiting.filter(x=>x!==person);msg(person+' wypisuje się (−1).')}
+    if(a==='go'){if(playing.length){msg('ODRZUCONO: drugi skład nie może dać GO, gdy pierwszy gra.');return}if(waiting.length<4){msg('Brakuje osób.');return}if(!waiting.slice(0,4).includes(person)){msg('GO może kliknąć ktoś z pierwszej czwórki.');return}playing=waiting.splice(0,4);msg('GO! Rozpoczął się mecz, stół jest zajęty.')}
+    if(a==='finish'){if(!playing.includes(person)){msg('Zakończenie wymaga jednej z czterech grających osób.');return}playing=[];msg('Mecz zakończony, stół wolny. Następna czwórka musi sama kliknąć GO.')}
+    render()}
+  for(const a of ['join','leave','go','finish'])$(a).addEventListener('click',()=>action(a));
+  $('who').addEventListener('change',render);
+  $('scenario').addEventListener('click',()=>{playing=users.slice(0,4);waiting=users.slice(4,8);$('who').value='Ela';msg('Drugi skład gotowy, ale GO zablokowane. Wybierz Olę, zakończ mecz i wróć do Eli.');render()});
+  $('reset').addEventListener('click',()=>{playing=[];waiting=[];$('who').value='Ola';msg('Demonstracja wyzerowana.');render()});
+  render();
+})();
+</script></body></html>

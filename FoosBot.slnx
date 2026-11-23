@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/FoosBot/FoosBot.csproj" />
+  <Project Path="tests/FoosBot.Tests/FoosBot.Tests.csproj" />
+</Solution>
